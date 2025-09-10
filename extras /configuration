@@ -1,0 +1,6 @@
+{
+  "s3_bucket": "your-bucket-here",
+  "raw_prefix": "raw/",
+  "transformed_prefix": "transformed/",
+  "redshift_role_arn": "arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>"
+}
