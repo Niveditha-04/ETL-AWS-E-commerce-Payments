@@ -4,25 +4,24 @@ This project is an end-to-end analytics stack for synthetic e-commerce payments.
 
 **What it does**
 
-1. Generate data: 1M payment rows with Faker (transaction_id, user_id, amount, currency, timestamp).
+1. Generate data: 1M+ payment rows with Faker (transaction_id, user_id, amount, currency, timestamp).
 2. Ingest: upload raw CSV to Amazon S3.
 3. Transform: AWS Glue (PySpark) cleans and enriches data
 – converts to Parquet, adds amount_usd, month, and an is_anomaly flag.
-– stores the transformed output back to S3 (partition-ready).
+– stores the transformed output back to S3.
 4. Load: Redshift Serverless ingests the Parquet folder via COPY FROM PARQUET.
-5. Model: lightweight SQL views for analysis:
-transactions_summary (monthly KPIs), currency_revenue (currency x month), anomalies (records flagged true).
+5. Model: transactions_summary (monthly KPIs), currency_revenue (currency x month), anomalies (records flagged true).
 6. Visualize: a few Tableau charts for revenue trends, top users, and breakdowns by currency.
 
 --------
 
 **Why this exists**
 
-A clear, reproducible pattern for batch analytics on AWS: durable storage (S3), scalable compute (Glue), SQL-friendly serving (Redshift), and BI on top. It’s the kind of pipeline you can lift into a real product with minimal changes.
+A clear, reproducible pattern for batch analytics on AWS: Storage (S3), scalable compute (Glue), SQL-friendly serving (Redshift), and BI on top. It’s the kind of pipeline you can lift into a real product with minimal changes.
 
 **What you’ll see in results**
 
-1. Fast SQL over ~1M rows in Redshift.
+1. Fast SQL over 1M+ rows in Redshift.
 2. Monthly revenue + counts (transactions_summary).
 3. Currency breakdowns (currency_revenue).
 4. A simple anomaly slice (anomalies) to prove the enrichment step.
@@ -41,7 +40,6 @@ A clear, reproducible pattern for batch analytics on AWS: durable storage (S3), 
 
 i. Data is synthetic and for demonstration only.
 ii. Glue write schema (8 cols): transaction_id, user_id, amount, currency, timestamp, amount_usd, month, is_anomaly.
-iii. Keep an eye on cloud costs if you scale beyond 1M rows.
 
 --------
 
@@ -52,4 +50,4 @@ iii. Keep an eye on cloud costs if you scale beyond 1M rows.
 
 
 
-**Stack:** S3 · Glue (PySpark) · Redshift Serverless · SQL · Tableau · Python/Faker
+**Stack:** S3 · Glue (PySpark) · Redshift Serverless · SQL · Tableau · Python
