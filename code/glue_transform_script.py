@@ -1,4 +1,4 @@
-import pandas as pd  # Pandas to process CSVs
+import pandas as pd 
 
 # Load the raw transactions
 df = pd.read_csv("transactions_raw.csv")
