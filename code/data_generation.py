@@ -2,9 +2,9 @@ from faker import Faker  # library to create fake names, dates, etc.
 import pandas as pd      # Pandas for handling data tables
 import random            # Random for generating random numbers
 
-# Create a fake data generator
+# Create a fake data generator with 1 million rows
 fake = Faker()
-rows = 1_000_000  # 1 million rows
+rows = 1_000_000 
 data = []
 
 currencies = ["USD", "EUR", "INR"]
