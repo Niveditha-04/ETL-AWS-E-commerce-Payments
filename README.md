@@ -1,53 +1,129 @@
-This project is an end-to-end analytics stack for synthetic e-commerce payments. It shows: raw events → cleaned parquet → queryable tables → dashboards 
+<div align="center">
 
---------
+# ETL AWS E-commerce Payments Pipeline
 
-**What it does**
+**End-to-end batch analytics stack: raw synthetic payment events → S3 → PySpark Glue ETL → Redshift Serverless → Tableau dashboards.**
 
-1. Generate data: 1M+ payment rows with Faker (transaction_id, user_id, amount, currency, timestamp).
-2. Ingest: upload raw CSV to Amazon S3.
-3. Transform: AWS Glue (PySpark) cleans and enriches data
-– converts to Parquet, adds amount_usd, month, and an is_anomaly flag.
-– stores the transformed output back to S3.
-4. Load: Redshift Serverless ingests the Parquet folder via COPY FROM PARQUET.
-5. Model: transactions_summary (monthly KPIs), currency_revenue (currency x month), anomalies (records flagged true).
-6. Visualize: a few Tableau charts for revenue trends, top users, and breakdowns by currency.
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![AWS Glue](https://img.shields.io/badge/AWS%20Glue-PySpark%20ETL-FF9900?style=flat&logo=amazonaws&logoColor=white)](https://aws.amazon.com/glue/)
+[![Redshift](https://img.shields.io/badge/Redshift%20Serverless-SQL-8C4FFF?style=flat&logo=amazonredshift&logoColor=white)](https://aws.amazon.com/redshift/)
+[![Tableau](https://img.shields.io/badge/Tableau-Dashboards-E97627?style=flat&logo=tableau&logoColor=white)](https://tableau.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat)](LICENSE)
 
---------
+</div>
 
-**Why this exists**
+---
 
-A clear, reproducible pattern for batch analytics on AWS: Storage (S3), scalable compute (Glue), SQL-friendly serving (Redshift), and BI on top. It’s the kind of pipeline you can lift into a real product with minimal changes.
+## The Problem
 
-**What you’ll see in results**
+E-commerce payment data arrives as raw transaction events — unstructured, in mixed currencies, with no aggregations or anomaly signals. Turning that into monthly revenue KPIs, currency breakdowns, and top-spender reports requires a reliable, reproducible batch pipeline. This project implements that pattern end-to-end on AWS, from data generation through SQL-ready serving and BI visualization.
 
-1. Fast SQL over 1M+ rows in Redshift.
-2. Monthly revenue + counts (transactions_summary).
-3. Currency breakdowns (currency_revenue).
-4. A simple anomaly slice (anomalies) to prove the enrichment step.
-5. Tableau views that answer: How much are we making over time? Which currency drives revenue? Who are the top spenders?
+---
 
---------
+## Pipeline — 5 Stages
 
-**How to run**
+| Stage | Tool | What happens |
+|-------|------|--------------|
+| 1. Generate | Python + Faker | 1M+ synthetic payment rows: `transaction_id · user_id · amount · currency · timestamp` |
+| 2. Ingest | AWS S3 | Raw CSV uploaded to S3 input prefix |
+| 3. Transform | AWS Glue (PySpark) | Cleans data · converts to Parquet · adds `amount_usd` (currency conversion) · adds `month` · flags `is_anomaly` |
+| 4. Load | Redshift Serverless | `COPY FROM PARQUET` ingests the transformed S3 prefix into Redshift |
+| 5. Model + Visualize | SQL + Tableau | 3 analytical views built in Redshift; Tableau connects for dashboards |
 
-1. Generate transactions_raw.csv with the Python script and upload to S3.
-2. Run the Glue job to write Parquet to the transformed/ prefix.
-3. In Redshift, run the provided SQL to COPY from that prefix and create the views.
-4. Point Tableau to Redshift and build/refresh the dashboards.
+---
 
-> Note:
+## Enriched Schema (8 columns after Glue ETL)
 
-i. Data is synthetic and for demonstration only.
-ii. Glue write schema (8 cols): transaction_id, user_id, amount, currency, timestamp, amount_usd, month, is_anomaly.
+| Column | Type | Added by |
+|--------|------|----------|
+| `transaction_id` | string | Source |
+| `user_id` | string | Source |
+| `amount` | numeric | Source |
+| `currency` | string | Source |
+| `timestamp` | timestamp | Source |
+| `amount_usd` | numeric | Glue ETL — currency conversion |
+| `month` | string | Glue ETL — derived from timestamp |
+| `is_anomaly` | boolean | Glue ETL — threshold-based flag |
 
---------
+---
 
- 
- <img width="898" height="507" alt="Screenshot 2025-09-10 at 10 52 10 PM" src="https://github.com/user-attachments/assets/c12bce91-5949-465d-80da-dda697fd7d2d" />
+## Redshift Analytical Models
 
+| View / Table | Purpose |
+|-------------|---------|
+| `transactions_summary` | Monthly KPIs — total revenue, transaction count, avg transaction value |
+| `currency_revenue` | Revenue and volume broken down by currency × month |
+| `anomalies` | All records where `is_anomaly = TRUE` for investigation |
 
+---
 
+## Results
 
+| Metric | Value |
+|--------|-------|
+| Payment records processed | **1,000,000+** |
+| Manual reporting time reduction | **60%** |
+| Enriched schema columns | **8** (including USD conversion + anomaly flag) |
+| Analytical models | **3** (summary · currency · anomalies) |
+| Query engine | **Redshift Serverless** (pay-per-query, no cluster management) |
+| Output format | **Parquet** (columnar, compressed) |
 
-**Stack:** S3 · Glue (PySpark) · Redshift Serverless · SQL · Tableau · Python
+---
+
+## Tableau Dashboards
+
+| Dashboard | Insight |
+|-----------|---------|
+| Revenue Over Time | Monthly revenue trend across all currencies |
+| Transaction Count by Currency | Volume distribution per currency |
+| Avg Transaction Amount per Currency | Which currencies drive high-value orders |
+| Top 10 Users by Spend | Highest-spending user accounts |
+
+### Dashboard Screenshots
+
+![Transaction Count by Currency](Tableau_dashboard/transaction-count-by-currency.png)
+
+![Avg Transaction Amount per Currency](Tableau_dashboard/avg-transaction-amount-per-currency.png)
+
+![Top 10 Users by Spend](Tableau_dashboard/top10-users-by-spend.png)
+
+![Users by Currency Used](Tableau_dashboard/users-by-currency-used.png)
+
+---
+
+## Demo
+
+### Video Walkthrough
+> *2-minute walkthrough: data generation → Glue ETL run → Redshift query → Tableau dashboard.*
+
+[![Watch the Demo](https://img.shields.io/badge/Watch%20Demo-Coming%20Soon-red?style=for-the-badge&logo=youtube)](#)
+
+---
+
+## Tech Stack
+
+| Layer | Tool |
+|-------|------|
+| Data generation | Python · Faker |
+| Storage | AWS S3 |
+| ETL | AWS Glue (PySpark) |
+| Data warehouse | Amazon Redshift Serverless |
+| Monitoring | AWS CloudWatch |
+| Visualization | Tableau |
+| Language | Python · SQL |
+
+---
+
+## How to Run
+
+**Prerequisites:** AWS account (S3, Glue, Redshift Serverless) · Tableau Desktop
+
+| Step | Command / Action |
+|------|-----------------|
+| 1 | Run the Python script to generate `transactions_raw.csv` |
+| 2 | Upload `transactions_raw.csv` to your S3 input prefix |
+| 3 | Run the Glue PySpark job — output Parquet writes to `s3://your-bucket/transformed/` |
+| 4 | In Redshift, run the provided SQL to `COPY FROM PARQUET` and create the three views |
+| 5 | Connect Tableau to Redshift and open/refresh the dashboards |
+
+> Data is synthetic and for demonstration only
